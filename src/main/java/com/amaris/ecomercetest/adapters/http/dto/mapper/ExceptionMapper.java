@@ -11,8 +11,10 @@ public interface ExceptionMapper {
     ExceptionDto to(ApplicationException source);
 
     @Mapping(target = "code", constant = "input-error")
+    @Mapping(target = "params", ignore = true)
     ExceptionDto to(ServerWebInputException source);
 
     @Mapping(target = "code", constant = "internal-error.not-handled-error")
+    @Mapping(target = "params", ignore = true)
     ExceptionDto to(Exception source);
 }
