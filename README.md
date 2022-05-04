@@ -36,6 +36,13 @@ Response (PriceDto):
 To access the swagger definitions (openapi), go to the url:
 http://localhost:8080/swagger-ui.html
 
+### Postman test runner
+Access to [the Postman Collection](https://www.postman.com/red-comet-639518/workspace/amaris/collection/6696700-5f37534f-8d08-4d16-bd4b-456356494f17?action=share&creator=6696700)
+and follow the next [Link](https://learning.postman.com/docs/running-collections/working-with-data-files/)
+to load the test data (`postman-test-runner.json`) in the runner.
+
+Be sure you have the application running before execute the Postman tests.
+
 ### Reference Documentation
 
 For further reference, please consider the following sections:
