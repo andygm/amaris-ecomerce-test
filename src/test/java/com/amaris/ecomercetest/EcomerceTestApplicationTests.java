@@ -8,14 +8,15 @@ import com.amaris.ecomercetest.models.Brand;
 import com.amaris.ecomercetest.models.Currency;
 import com.amaris.ecomercetest.models.Price;
 import com.amaris.ecomercetest.models.Product;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.test.StepVerifier;
 
 import java.math.BigDecimal;
@@ -25,13 +26,16 @@ import java.util.stream.Stream;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@AutoConfigureWebTestClient
 class EcomerceTestApplicationTests {
     static BigInteger PRODUCT_ID = BigInteger.valueOf(35455);
     static BigInteger BRAND_ID = BigInteger.ONE;
+    static String FINAL_PRICE_PATH = "/api/v1/brand/{brandId}/product/{productId}/price";
 
     @Autowired
     private PriceService service;
-
+    @Autowired
+    private WebTestClient webTestClient;
 
     @Test
     void getFinalPrice_Successful() {
@@ -55,7 +59,7 @@ class EcomerceTestApplicationTests {
         LocalDateTime date = LocalDateTime.of(2020, 6, 14, 17, 0);
         StepVerifier.create(service.getFinalPrice(BRAND_ID, BigInteger.ZERO, date))
                 .expectErrorMatches(throwable -> throwable instanceof ProductNotFoundException &&
-                                throwable.getMessage().equals("Not found Product ID -> 0")
+                        throwable.getMessage().equals("Not found Product ID -> 0")
                 ).verify();
     }
 
@@ -67,7 +71,7 @@ class EcomerceTestApplicationTests {
                         throwable.getMessage().equals("Not found final price for Brand ID -> 1, Product ID -> 35455, Date -> 2021-06-14T17:00")
                 ).verify();
     }
-    
+
     private Price getSuccessfulPrice() {
         Brand brand = new Brand(BRAND_ID, "ZARA");
         Product product = new Product(PRODUCT_ID, "PRODUCT-1");
@@ -86,9 +90,14 @@ class EcomerceTestApplicationTests {
     @ParameterizedTest
     @MethodSource
     void argumentTestByRequirements(LocalDateTime date, BigInteger productId, BigInteger brandId) {
-        StepVerifier.create(service.getFinalPrice(brandId, productId, date))
-                .assertNext(Assertions::assertNotNull)
-                .verifyComplete();
+        webTestClient.get()
+                .uri(uriBuilder ->
+                        uriBuilder.path(FINAL_PRICE_PATH)
+                                .queryParam("date", date)
+                                .build(brandId, productId))
+                .exchange()
+                .expectStatus()
+                .isOk();
     }
 
     private static Stream<Arguments> argumentTestByRequirements() {
